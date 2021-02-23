@@ -13,7 +13,7 @@ use hidapi::HidApi;
 fn main() {
     println!("Printing all available hid devices:");
 
-    match HidApi::new() {
+    match HidApi::get_instance() {
         Ok(api) => {
             for device in api.device_list() {
                 println!(

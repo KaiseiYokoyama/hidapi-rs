@@ -86,7 +86,7 @@ fn open_device(api: &HidApi) -> HidDevice {
 }
 
 fn main() {
-    let api = HidApi::new().expect("HID API object creation failed");
+    let api = HidApi::get_instance().expect("HID API object creation failed");
 
     let dev = open_device(&api);
 

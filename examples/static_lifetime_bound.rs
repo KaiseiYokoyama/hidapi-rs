@@ -21,7 +21,7 @@ fn requires_static_lt_bound<F: Fn() + 'static>(f: F) {
 }
 
 fn test_lt() -> Rc<HidDevice> {
-    let api = HidApi::new().expect("Hidapi init failed");
+    let api = HidApi::get_instance().expect("Hidapi init failed");
 
     let mut devices = api.device_list();
 

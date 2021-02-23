@@ -13,7 +13,7 @@ extern crate hidapi;
 use hidapi::HidApi;
 
 fn main() {
-    let api = HidApi::new().expect("Failed to create API instance");
+    let api = HidApi::get_instance().expect("Failed to create API instance");
 
     let joystick = api.open(1103, 45320).expect("Failed to open device");
 

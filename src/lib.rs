@@ -22,7 +22,7 @@
 //! fn main() {
 //!     println!("Printing all available hid devices:");
 //!
-//!     match HidApi::new() {
+//!     match HidApi::get_instance().as_ref() {
 //!         Ok(api) => {
 //!             for device in api.devices() {
 //!                 println!("{:#?}", device);
@@ -39,6 +39,7 @@
 #![allow(deprecated)]
 
 extern crate libc;
+extern crate once_cell;
 
 mod error;
 mod ffi;
@@ -51,6 +52,7 @@ use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
 
 pub use error::HidError;
+use once_cell::sync::OnceCell;
 
 pub type HidResult<T> = Result<T, HidError>;
 
@@ -100,11 +102,30 @@ pub struct HidApi {
 
 static HID_API_LOCK: AtomicBool = AtomicBool::new(false);
 
+static HIDAPI_INSTANCE: OnceCell<HidResult<HidApi>> = OnceCell::new();
+
 impl HidApi {
+    /// Get reference of only one instance.
+    pub fn get_instance<'a>() -> Result<&'static Self, &'a HidError> {
+        match HIDAPI_INSTANCE.get() {
+            Some(instance) => instance,
+            None => {
+                let instance = HidApi::new();
+                match HIDAPI_INSTANCE.set(instance) {
+                    Ok(_) => {},
+                    Err(_instance) => {
+                        panic!("hidapi error: (could not set HIDAPI_INSTANCE)");
+                    }
+                };
+                HIDAPI_INSTANCE.get().expect("hidapi error: (could not get instance from HIDAPI_INSTANCE)")
+            }
+        }.as_ref()
+    }
+
     /// Initializes the hidapi.
     ///
     /// Will also initialize the currently available device list.
-    pub fn new() -> HidResult<Self> {
+    fn new() -> HidResult<Self> {
         let lock = HidApiLock::acquire()?;
 
         let device_list = unsafe { HidApi::get_hid_device_info_vector()? };

@@ -13,7 +13,7 @@ use hidapi::{HidApi, HidError};
 
 fn main() {
     fn run() -> Result<(), HidError> {
-        let hidapi = HidApi::new()?;
+        let hidapi = HidApi::get_instance().expect("Hidapi init failed");
 
         let device_info = hidapi
             .device_list()
